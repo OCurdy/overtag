@@ -1,0 +1,10 @@
+<div class="layer-panel">
+    <h3>Layers</h3>
+    <ul>
+      <li *ngFor="let layer of layers">
+        <span class="legend-color" [style.background-color]="layer.color"></span>
+        {{ layer.title }}
+      </li>
+    </ul>
+  </div>
+  

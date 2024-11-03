@@ -1,0 +1,18 @@
+<div class="search-bar-container">
+  <input 
+    type="text" 
+    [(ngModel)]="searchQuery" 
+    (input)="onInputChange()" 
+    placeholder="Rechercher un tag" 
+    class="search-input" 
+  />
+  <button class="search-button" (click)="onSearch()">
+    <i class="fas fa-search"></i>
+  </button>
+  
+  <ul *ngIf="suggestions.length" class="suggestions-list">
+    <li *ngFor="let suggestion of suggestions" (click)="onSuggestionSelect(suggestion)">
+      {{ suggestion }}
+    </li>
+  </ul>
+</div>
