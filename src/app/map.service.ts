@@ -21,7 +21,7 @@ export class MapService {
   private map: Map | undefined;
   private colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A6', '#FF8C33'];
   private colorIndex = 0;
-  currentQuery: string | undefined; // Suivi de la requête actuelle
+  currentQuery: string | undefined;
 
   setMap(mapInstance: Map): void {
     this.map = mapInstance;
@@ -50,7 +50,6 @@ export class MapService {
     this.layerAddedSubject.next(layerInfo);
   }
 
-  // Méthode pour récupérer la couleur suivante
   getNextColor(): string {
     const color = this.colors[this.colorIndex % this.colors.length];
     this.colorIndex++;

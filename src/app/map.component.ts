@@ -31,7 +31,7 @@ export class MapComponent implements OnInit {
         }),
       ],
       view: new View({
-        center: [919078.8281, 5902314.4501],  // Coordonnées de la Suisse
+        center: [919078.8281, 5902314.4501],
         zoom: 8,
       }),
     });
@@ -40,7 +40,7 @@ export class MapComponent implements OnInit {
   
     this.mapService.overpassData$.subscribe((overpassData: any) => {
       const layerTitle = `${this.mapService.currentQuery || 'default'}`;
-      const color = this.mapService.getNextColor(); // Appel unique à getNextColor()
+      const color = this.mapService.getNextColor();
       this.addVectorLayer(overpassData, layerTitle, color);
     });
   }  
@@ -48,12 +48,10 @@ export class MapComponent implements OnInit {
   addVectorLayer(overpassData: any, layerTitle: string, color: string): void {
     const vectorSource = new VectorSource();
   
-    // Ajouter la couche au panneau avec le titre et la couleur
     this.mapService.addLayerToPanel(layerTitle, color);
   
     const usedNodeIds = new Set<number>();
   
-    // Récupérer les IDs des nodes utilisés dans les ways et relations
     overpassData.elements.forEach((element: any) => {
       if (element.type === 'way' && element.nodes) {
         element.nodes.forEach((nodeId: number) => usedNodeIds.add(nodeId));
@@ -94,7 +92,6 @@ export class MapComponent implements OnInit {
             geometry: new Polygon([coordinates]),
             properties: element.tags || {}
           });
-          // Style pour les polygones fermés
           feature.setStyle(new Style({
             stroke: new Stroke({ color: color, width: 2 }),
             fill: new Fill({ color: this.hexToRgba(color, 0.6) })
@@ -104,7 +101,6 @@ export class MapComponent implements OnInit {
             geometry: new LineString(coordinates),
             properties: element.tags || {}
           });
-          // Style pour les lignes
           feature.setStyle(new Style({
             stroke: new Stroke({ color: color, width: 2 })
           }));
@@ -138,7 +134,6 @@ export class MapComponent implements OnInit {
     this.map?.addLayer(vectorLayer);
   }
   
-  // Ajoutez cette fonction utilitaire pour convertir une couleur hexadécimale en rgba
   hexToRgba(hex: string, alpha: number): string {
     const bigint = parseInt(hex.replace('#', ''), 16);
     const r = (bigint >> 16) & 255;

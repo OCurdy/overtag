@@ -21,7 +21,6 @@ export class LayerPanelComponent implements OnInit {
   constructor(private mapService: MapService) {}
 
   ngOnInit(): void {
-    // S'abonner aux couches ajoutées dans le service
     this.mapService.layerAdded$.subscribe((layer: LayerInfo) => {
       this.layers.push(layer);
     });

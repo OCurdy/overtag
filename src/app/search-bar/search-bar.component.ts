@@ -57,8 +57,7 @@ export class SearchBarComponent {
       try {
         const bbox = this.getBoundingBoxString();
         const data = await this.overpassService.queryOverpass(this.searchQuery, bbox);
-        // Utiliser `updateMapData` pour mettre à jour la carte et ajouter au panneau
-        this.mapService.updateMapData(data, this.searchQuery);  // Passer la requête comme titre de la couche
+        this.mapService.updateMapData(data, this.searchQuery);
       } catch (error) {
         console.error('Erreur lors de la requête Overpass:', error);
       }
@@ -69,7 +68,7 @@ export class SearchBarComponent {
     const { bottomLeft, topRight } = this.mapService.getMapExtent();
     if (bottomLeft.includes(NaN) || topRight.includes(NaN)) {
       console.error("Erreur: les coordonnées de la carte ne sont pas valides.");
-      return "46.8,5.9,47.8,10.5";  // Coordonnées par défaut couvrant la Suisse
+      return "46.8,5.9,47.8,10.5";
     }
     return `${bottomLeft[1]},${bottomLeft[0]},${topRight[1]},${topRight[0]}`;
   }
