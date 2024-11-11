@@ -55,6 +55,7 @@ export class SearchBarComponent {
   async onSearch(): Promise<void> {
     if (this.searchQuery) {
       try {
+        this.mapService.startLoading();
         const bbox = this.getBoundingBoxString();
         const data = await this.overpassService.queryOverpass(this.searchQuery, bbox);
         this.mapService.updateMapData(data, this.searchQuery);

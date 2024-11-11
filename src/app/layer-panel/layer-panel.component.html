@@ -1,10 +1,25 @@
 <div class="layer-panel">
-    <h3>Layers</h3>
-    <ul>
-      <li *ngFor="let layer of layers">
-        <span class="legend-color" [style.background-color]="layer.color"></span>
-        {{ layer.title }}
-      </li>
-    </ul>
-  </div>
-  
+  <h3>Layers</h3>
+  <ul>
+    <li *ngFor="let layer of layers; let i = index" class="layer-item">
+      <!-- Left Section: Icon with Color -->
+      <div class="layer-left">
+        <span class="layer-icon" [style.background-color]="layer.color">
+          <i [class]="getIconClass(layer)"></i>
+        </span>
+      </div>
+      <!-- Center Section: Title and Description -->
+      <div class="layer-center">
+        <span class="layer-title">{{ layer.title }}</span>
+        <p class="layer-description">
+          {{ getTruncatedDescription(layer.description) }}
+          <a *ngIf="layer.description" [href]="getWikiLink(layer.title)" target="_blank" class="description-link"> for more</a>
+        </p>
+      </div>
+      <!-- Right Section: Close Button -->
+      <button class="delete-button" (click)="removeLayer(i)">
+        <i class="bi bi-x"></i>
+      </button>
+    </li>
+  </ul>
+</div>

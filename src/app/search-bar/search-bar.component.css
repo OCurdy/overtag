@@ -39,7 +39,7 @@
 }
 
 .search-button i {
-  font-size: 16px; /* Ajuste la taille de l'icône */
+  font-size: 120%;
 }
 
 .suggestions-list {

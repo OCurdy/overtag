@@ -10,15 +10,18 @@ import { Feature } from 'ol';
 import { Style, Circle as CircleStyle, Fill, Stroke } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
 import { MapService } from './map.service';
+import { SpinnerComponent } from './spinner.component';
 
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css'],
-  standalone: true
+  standalone: true,
+  imports: [SpinnerComponent],
 })
 export class MapComponent implements OnInit {
   map: Map | undefined;
+  isLoading: boolean = false;
 
   constructor(private mapService: MapService) {}
 
@@ -35,20 +38,35 @@ export class MapComponent implements OnInit {
         zoom: 8,
       }),
     });
-  
+
     this.mapService.setMap(this.map);
-  
-    this.mapService.overpassData$.subscribe((overpassData: any) => {
-      const layerTitle = `${this.mapService.currentQuery || 'default'}`;
-      const color = this.mapService.getNextColor();
-      this.addVectorLayer(overpassData, layerTitle, color);
+
+    this.mapService.startLoading$.subscribe(() => {
+      this.isLoading = true; // Show spinner when loading starts
     });
-  }  
+
+    this.mapService.overpassData$.subscribe({
+      next: (overpassData: any) => {
+        this.isLoading = false; // Hide spinner when data is loaded
+        const layerTitle = `${this.mapService.currentQuery || 'default'}`;
+        const color = this.mapService.getNextColor();
+        this.addVectorLayer(overpassData, layerTitle, color);
+      },
+      error: () => {
+        this.isLoading = false; // Hide spinner on error
+      },
+    });
+  }
 
   addVectorLayer(overpassData: any, layerTitle: string, color: string): void {
     const vectorSource = new VectorSource();
   
+    const vectorLayer = new VectorLayer({
+      source: vectorSource,
+    });
+  
     this.mapService.addLayerToPanel(layerTitle, color);
+    this.mapService.addLayerToMap(layerTitle, vectorLayer);
   
     const usedNodeIds = new Set<number>();
   
@@ -71,17 +89,21 @@ export class MapComponent implements OnInit {
       if (element.type === 'node' && element.lat && element.lon && !usedNodeIds.has(element.id)) {
         feature = new Feature({
           geometry: new Point(fromLonLat([element.lon, element.lat])),
-          properties: element.tags || {}
+          properties: element.tags || {},
         });
-        feature.setStyle(new Style({
-          image: new CircleStyle({
-            radius: 10,
-            fill: new Fill({ color: color }),
-            stroke: new Stroke({ color: 'rgba(0, 0, 0, 0.3)', width: 1 })
+        feature.setStyle(
+          new Style({
+            image: new CircleStyle({
+              radius: 10,
+              fill: new Fill({ color: color }),
+              stroke: new Stroke({ color: 'rgba(0, 0, 0, 0.3)', width: 1 }),
+            }),
           })
-        }));
+        );
       } else if (element.type === 'way' && element.geometry) {
-        const coordinates = element.geometry.map((node: any) => fromLonLat([node.lon, node.lat]));
+        const coordinates = element.geometry.map((node: any) =>
+          fromLonLat([node.lon, node.lat])
+        );
   
         if (
           coordinates.length > 2 &&
@@ -90,33 +112,41 @@ export class MapComponent implements OnInit {
         ) {
           feature = new Feature({
             geometry: new Polygon([coordinates]),
-            properties: element.tags || {}
+            properties: element.tags || {},
           });
-          feature.setStyle(new Style({
-            stroke: new Stroke({ color: color, width: 2 }),
-            fill: new Fill({ color: this.hexToRgba(color, 0.6) })
-          }));
+          feature.setStyle(
+            new Style({
+              stroke: new Stroke({ color: color, width: 2 }),
+              fill: new Fill({ color: this.hexToRgba(color, 0.6) }),
+            })
+          );
         } else {
           feature = new Feature({
             geometry: new LineString(coordinates),
-            properties: element.tags || {}
+            properties: element.tags || {},
           });
-          feature.setStyle(new Style({
-            stroke: new Stroke({ color: color, width: 2 })
-          }));
+          feature.setStyle(
+            new Style({
+              stroke: new Stroke({ color: color, width: 2 }),
+            })
+          );
         }
       } else if (element.type === 'relation' && element.members) {
         element.members.forEach((member: any) => {
           if (member.type === 'way' && member.geometry) {
-            const coordinates = member.geometry.map((node: any) => fromLonLat([node.lon, node.lat]));
+            const coordinates = member.geometry.map((node: any) =>
+              fromLonLat([node.lon, node.lat])
+            );
             const relationFeature = new Feature({
               geometry: new Polygon([coordinates]),
-              properties: element.tags || {}
+              properties: element.tags || {},
             });
-            relationFeature.setStyle(new Style({
-              stroke: new Stroke({ color: color, width: 2 }),
-              fill: new Fill({ color: this.hexToRgba(color, 0.6) })
-            }));
+            relationFeature.setStyle(
+              new Style({
+                stroke: new Stroke({ color: color, width: 2 }),
+                fill: new Fill({ color: this.hexToRgba(color, 0.6) }),
+              })
+            );
             vectorSource.addFeature(relationFeature);
           }
         });
@@ -127,13 +157,9 @@ export class MapComponent implements OnInit {
       }
     });
   
-    const vectorLayer = new VectorLayer({
-      source: vectorSource
-    });
-  
     this.map?.addLayer(vectorLayer);
   }
-  
+
   hexToRgba(hex: string, alpha: number): string {
     const bigint = parseInt(hex.replace('#', ''), 16);
     const r = (bigint >> 16) & 255;
