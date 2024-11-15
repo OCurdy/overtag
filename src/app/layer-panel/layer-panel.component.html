@@ -1,7 +1,7 @@
 <div class="layer-panel">
   <h3>Layers</h3>
-  <ul>
-    <li *ngFor="let layer of layers; let i = index" class="layer-item">
+  <ul cdkDropList (cdkDropListDropped)="onDrop($event)" class="drag-container">
+    <li *ngFor="let layer of layers; let i = index" cdkDrag class="layer-item">
       <!-- Left Section: Icon with Color -->
       <div class="layer-left">
         <span class="layer-icon" [style.background-color]="layer.color">
@@ -12,8 +12,8 @@
       <div class="layer-center">
         <span class="layer-title">{{ layer.title }}</span>
         <p class="layer-description">
-          {{ getTruncatedDescription(layer.description) }}
-          <a *ngIf="layer.description" [href]="getWikiLink(layer.title)" target="_blank" class="description-link"> for more</a>
+          {{ getTruncatedDescription(layer.description) }}..
+          <a *ngIf="layer.description" [href]="getWikiLink(layer.title)" target="_blank" class="description-link">for more ifno</a>
         </p>
       </div>
       <!-- Right Section: Close Button -->

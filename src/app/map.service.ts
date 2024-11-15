@@ -54,12 +54,43 @@ export class MapService {
   }
 
   addLayerToMap(layerTitle: string, layer: Layer<any>): void {
-    if (this.map) {
-      this.map.addLayer(layer);
-      this.layersMap.set(layerTitle, layer);
-      console.log('Layer added to map:', layerTitle, layer);
-      console.log('Current layersMap:', Array.from(this.layersMap.keys()));
+    if (this.layersMap.has(layerTitle)) {
+      console.warn(`Layer "${layerTitle}" already exists in layersMap.`);
+      return;
     }
+  
+    // Add the new layer to the map at the top of the stack
+    this.map!.addLayer(layer); 
+    this.layersMap.set(layerTitle, layer);
+  
+    console.log('Layer added to map:', layerTitle);
+  }
+  
+  updateLayerOrder(layers: LayerInfo[]): void {
+    if (!this.map) {
+      console.warn('Map is not initialized.');
+      return;
+    }
+  
+    const mapLayers = this.map.getLayers();
+    const currentLayers = mapLayers.getArray();
+    const baseLayer = currentLayers.find(layer => layer.get('isBaseLayer'));
+  
+    // Remove all non-base layers
+    mapLayers.clear();
+    if (baseLayer) {
+      mapLayers.push(baseLayer);
+    }
+  
+    // Add layers back in reverse order to ensure correct stacking
+    [...layers].reverse().forEach(layerInfo => {
+      const mapLayer = this.layersMap.get(layerInfo.title);
+      if (mapLayer) {
+        mapLayers.push(mapLayer);
+      }
+    });
+  
+    console.log('Layer order updated on the map:', layers.map(l => l.title));
   }  
 
   removeLayerFromMap(layerTitle: string): void {

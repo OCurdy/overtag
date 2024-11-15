@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { TagfinderService } from '../tagfinder.service';
 import { OverpassService } from '../overpass.service';
 import { MapService } from '../map.service';
@@ -17,6 +17,7 @@ import { CommonModule } from '@angular/common';
 export class SearchBarComponent {
   searchQuery = '';
   suggestions: string[] = [];
+  isDropdownVisible = false;
 
   constructor(
     private tagfinderService: TagfinderService,
@@ -24,8 +25,18 @@ export class SearchBarComponent {
     private mapService: MapService
   ) {}
 
+  @HostListener('document:click', ['$event'])
+  handleOutsideClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const isClickInside = target.closest('.search-bar-container');
+    if (!isClickInside) {
+      this.isDropdownVisible = false;
+    }
+  }
+
   onInputChange(): void {
     if (this.searchQuery.length >= 3) {
+      this.isDropdownVisible = true;
       this.tagfinderService.suggestTag(this.searchQuery)
         .pipe(
           debounceTime(300),
@@ -43,12 +54,14 @@ export class SearchBarComponent {
         });
     } else {
       this.suggestions = [];
+      this.isDropdownVisible = false;
     }
   }
 
   onSuggestionSelect(suggestion: string): void {
     this.searchQuery = suggestion;
     this.suggestions = [];
+    this.isDropdownVisible = false;
     this.onSearch();
   }
 

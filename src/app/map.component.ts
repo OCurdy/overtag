@@ -26,25 +26,27 @@ export class MapComponent implements OnInit {
   constructor(private mapService: MapService) {}
 
   ngOnInit(): void {
+    const baseLayer = new TileLayer({
+      source: new OSM(),
+    });
+  
+    baseLayer.set('isBaseLayer', true); // Tag the base map
+  
     this.map = new Map({
       target: 'map',
-      layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-      ],
+      layers: [baseLayer],
       view: new View({
         center: [919078.8281, 5902314.4501],
         zoom: 8,
       }),
     });
-
+  
     this.mapService.setMap(this.map);
-
+  
     this.mapService.startLoading$.subscribe(() => {
       this.isLoading = true; // Show spinner when loading starts
     });
-
+  
     this.mapService.overpassData$.subscribe({
       next: (overpassData: any) => {
         this.isLoading = false; // Hide spinner when data is loaded
@@ -56,7 +58,7 @@ export class MapComponent implements OnInit {
         this.isLoading = false; // Hide spinner on error
       },
     });
-  }
+  }  
 
   addVectorLayer(overpassData: any, layerTitle: string, color: string): void {
     const vectorSource = new VectorSource();

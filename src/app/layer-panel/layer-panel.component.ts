@@ -3,6 +3,8 @@ import { MapService } from '../map.service';
 import { BootstrapIconService } from '../icon.service';
 import { TagInfoService } from '../taginfo.service';
 import { CommonModule } from '@angular/common';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 interface LayerInfo {
   title: string;
@@ -15,7 +17,7 @@ interface LayerInfo {
   templateUrl: './layer-panel.component.html',
   styleUrls: ['./layer-panel.component.css'],
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DragDropModule],
 })
 export class LayerPanelComponent implements OnInit {
   layers: LayerInfo[] = [];
@@ -29,10 +31,13 @@ export class LayerPanelComponent implements OnInit {
   ngOnInit(): void {
     this.mapService.layerAdded$.subscribe((layer: LayerInfo) => {
       this.tagInfoService.getTagDescription(layer.title).subscribe((data) => {
-        this.layers.push({
+        // Add the new layer to the top of the list
+        this.layers.unshift({
           ...layer,
           description: data.description,
         });
+        // Ensure the new layer appears on top in the map
+        this.mapService.updateLayerOrder(this.layers);
       });
     });
   }
@@ -45,6 +50,11 @@ export class LayerPanelComponent implements OnInit {
     const layerToRemove = this.layers[index];
     this.layers.splice(index, 1);
     this.mapService.removeLayerFromMap(layerToRemove.title);
+  }
+
+  onDrop(event: CdkDragDrop<LayerInfo[]>): void {
+    moveItemInArray(this.layers, event.previousIndex, event.currentIndex);
+    this.mapService.updateLayerOrder(this.layers); // Update map order
   }
 
   getTruncatedDescription(description?: string, maxLength: number = 100): string {
@@ -60,5 +70,4 @@ export class LayerPanelComponent implements OnInit {
       ? `https://wiki.openstreetmap.org/wiki/Tag:${key}%3D${value}`
       : `https://wiki.openstreetmap.org/wiki/Key:${key}`;
   }
-  
 }
