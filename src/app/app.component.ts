@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { SearchBarComponent } from './search-bar/search-bar.component';
 import { LayerPanelComponent } from './layer-panel/layer-panel.component';
-import { MapComponent } from "./map.component";
+import { MapComponent } from "./map/map.component";
 
 @Component({
   selector: 'app-root',

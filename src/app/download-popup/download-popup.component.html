@@ -1,0 +1,31 @@
+<div class="modal-overlay">
+  <div class="modal">
+    <!-- Bouton pour fermer la popup -->
+    <button class="modal-close" (click)="close.emit()">&times;</button>
+
+    <!-- Titre -->
+    <span class="layer-title">{{ layer?.title }}</span>
+
+    <!-- Options de téléchargement -->
+    <div class="download-format">
+      <button (click)="downloadFormat('gpkg')">
+        <i class="bi bi-file-earmark-arrow-down"></i> GPKG
+      </button>
+      <button (click)="downloadFormat('json')">
+        <i class="bi bi-file-earmark-code"></i> JSON
+      </button>
+      <button (click)="downloadFormat('csv')">
+        <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+      </button>
+      <button (click)="downloadFormat('gpx')">
+        <i class="bi bi-file-earmark-richtext"></i> GPX
+      </button>
+      <button (click)="downloadFormat('kml')">
+        <i class="bi bi-file-earmark"></i> KML
+      </button>
+      <button (click)="downloadFormat('shp')">
+        <i class="bi bi-file-earmark-zip"></i> Shapefile
+      </button>
+    </div>
+  </div>
+</div>

@@ -9,8 +9,9 @@ import { Point, LineString, Polygon } from 'ol/geom';
 import { Feature } from 'ol';
 import { Style, Circle as CircleStyle, Fill, Stroke } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
-import { MapService } from './map.service';
-import { SpinnerComponent } from './spinner.component';
+import { MapService } from '../services/map.service';
+import { SpinnerComponent } from '../loading-spinner/spinner.component';
+import Overlay from 'ol/Overlay';
 
 @Component({
   selector: 'app-map',
@@ -23,15 +24,20 @@ export class MapComponent implements OnInit {
   map: Map | undefined;
   isLoading: boolean = false;
 
+  popupElement: HTMLElement | undefined;
+  popupContent: HTMLElement | undefined;
+  popupCloser: HTMLElement | undefined;
+  overlay: Overlay | undefined;
+
   constructor(private mapService: MapService) {}
 
   ngOnInit(): void {
     const baseLayer = new TileLayer({
       source: new OSM(),
     });
-  
-    baseLayer.set('isBaseLayer', true); // Tag the base map
-  
+
+    baseLayer.set('isBaseLayer', true);
+
     this.map = new Map({
       target: 'map',
       layers: [baseLayer],
@@ -40,54 +46,104 @@ export class MapComponent implements OnInit {
         zoom: 8,
       }),
     });
-  
+
     this.mapService.setMap(this.map);
-  
+
+    this.popupElement = document.getElementById('popup') as HTMLElement;
+    this.popupContent = document.getElementById('popup-content') as HTMLElement;
+    this.popupCloser = document.getElementById('popup-closer') as HTMLElement;
+
+    this.overlay = new Overlay({
+      element: this.popupElement,
+      autoPan: {
+        animation: {
+          duration: 250,
+        },
+      },
+    });    
+
+    this.map.addOverlay(this.overlay);
+
+    this.popupCloser.onclick = () => {
+      this.overlay?.setPosition(undefined);
+      this.popupCloser?.blur();
+      return false;
+    };
+
+    this.map.on('singleclick', (evt) => this.handleMapClick(evt));
+
     this.mapService.startLoading$.subscribe(() => {
-      this.isLoading = true; // Show spinner when loading starts
+      this.isLoading = true;
     });
-  
+
     this.mapService.overpassData$.subscribe({
       next: (overpassData: any) => {
-        this.isLoading = false; // Hide spinner when data is loaded
+        this.isLoading = false;
         const layerTitle = `${this.mapService.currentQuery || 'default'}`;
         const color = this.mapService.getNextColor();
         this.addVectorLayer(overpassData, layerTitle, color);
       },
       error: () => {
-        this.isLoading = false; // Hide spinner on error
+        this.isLoading = false;
       },
     });
-  }  
+  }
+
+  handleMapClick(event: any): void {
+    if (!this.map) {
+      return;
+    }
+
+    const feature = this.map.forEachFeatureAtPixel(event.pixel, (feat) => feat);
+
+    if (feature) {
+      const coordinates = event.coordinate;
+      const properties = feature.getProperties();
+
+      delete properties['geometry'];
+
+      let infoContent = '<ul>';
+      for (const key in properties) {
+        if (properties.hasOwnProperty(key)) {
+          infoContent += `<li><strong>${key}:</strong> ${properties[key]}</li>`;
+        }
+      }
+      infoContent += '</ul>';
+
+      this.popupContent!.innerHTML = infoContent;
+      this.overlay!.setPosition(coordinates);
+    } else {
+      this.overlay!.setPosition(undefined);
+      this.popupCloser?.blur();
+    }
+  }
 
   addVectorLayer(overpassData: any, layerTitle: string, color: string): void {
+    const uniqueId = this.mapService.generateUniqueLayerId();
+    console.log(`Generated uniqueId: ${uniqueId}`);
+
     const vectorSource = new VectorSource();
-  
     const vectorLayer = new VectorLayer({
       source: vectorSource,
+      properties: { id: uniqueId, title: layerTitle },
     });
-  
-    this.mapService.addLayerToPanel(layerTitle, color);
-    this.mapService.addLayerToMap(layerTitle, vectorLayer);
-  
+
+    vectorLayer.set('id', uniqueId);
+
+    this.mapService.addLayerToPanel(uniqueId, layerTitle, color);
+    this.mapService.addLayerToMap(uniqueId, vectorLayer, vectorSource);
+
     const usedNodeIds = new Set<number>();
-  
+
     overpassData.elements.forEach((element: any) => {
       if (element.type === 'way' && element.nodes) {
         element.nodes.forEach((nodeId: number) => usedNodeIds.add(nodeId));
       }
-      if (element.type === 'relation' && element.members) {
-        element.members.forEach((member: any) => {
-          if (member.type === 'way' && member.nodes) {
-            member.nodes.forEach((nodeId: number) => usedNodeIds.add(nodeId));
-          }
-        });
-      }
     });
-  
+
     overpassData.elements.forEach((element: any) => {
       let feature: Feature | null = null;
-  
+
       if (element.type === 'node' && element.lat && element.lon && !usedNodeIds.has(element.id)) {
         feature = new Feature({
           geometry: new Point(fromLonLat([element.lon, element.lat])),
@@ -103,10 +159,8 @@ export class MapComponent implements OnInit {
           })
         );
       } else if (element.type === 'way' && element.geometry) {
-        const coordinates = element.geometry.map((node: any) =>
-          fromLonLat([node.lon, node.lat])
-        );
-  
+        const coordinates = element.geometry.map((node: any) => fromLonLat([node.lon, node.lat]));
+
         if (
           coordinates.length > 2 &&
           coordinates[0][0] === coordinates[coordinates.length - 1][0] &&
@@ -118,8 +172,8 @@ export class MapComponent implements OnInit {
           });
           feature.setStyle(
             new Style({
-              stroke: new Stroke({ color: color, width: 2 }),
               fill: new Fill({ color: this.hexToRgba(color, 0.6) }),
+              stroke: new Stroke({ color: color, width: 2 }),
             })
           );
         } else {
@@ -133,33 +187,14 @@ export class MapComponent implements OnInit {
             })
           );
         }
-      } else if (element.type === 'relation' && element.members) {
-        element.members.forEach((member: any) => {
-          if (member.type === 'way' && member.geometry) {
-            const coordinates = member.geometry.map((node: any) =>
-              fromLonLat([node.lon, node.lat])
-            );
-            const relationFeature = new Feature({
-              geometry: new Polygon([coordinates]),
-              properties: element.tags || {},
-            });
-            relationFeature.setStyle(
-              new Style({
-                stroke: new Stroke({ color: color, width: 2 }),
-                fill: new Fill({ color: this.hexToRgba(color, 0.6) }),
-              })
-            );
-            vectorSource.addFeature(relationFeature);
-          }
-        });
       }
-  
+
       if (feature) {
         vectorSource.addFeature(feature);
       }
     });
-  
-    this.map?.addLayer(vectorLayer);
+
+    console.log(`Added new layer: ${uniqueId}`);
   }
 
   hexToRgba(hex: string, alpha: number): string {
@@ -167,8 +202,7 @@ export class MapComponent implements OnInit {
     const r = (bigint >> 16) & 255;
     const g = (bigint >> 8) & 255;
     const b = bigint & 255;
-  
+
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
-  
 }

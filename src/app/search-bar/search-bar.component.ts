@@ -1,7 +1,7 @@
 import { Component, HostListener } from '@angular/core';
-import { TagfinderService } from '../tagfinder.service';
-import { OverpassService } from '../overpass.service';
-import { MapService } from '../map.service';
+import { TagfinderService } from '../services/tagfinder.service';
+import { OverpassService } from '../services/overpass.service';
+import { MapService } from '../services/map.service';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { FormsModule } from '@angular/forms';

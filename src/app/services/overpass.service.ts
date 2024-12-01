@@ -24,4 +24,25 @@ export class OverpassService {
     const response = await axios.get(url);
     return response.data;
   }
+  
+  async queryOverpassWithGeometry(tag: string, bbox: string, geometry: string): Promise<any> {
+    const [key, value] = tag.split('=');
+
+    // Filter by geometry type
+    const filter = {
+      point: 'node',
+      line: 'way',
+      polygon: 'relation',
+    }[geometry] || 'node';
+
+    const query = `[out:json][timeout:25];
+      (
+        ${filter}["${key}"="${value}"](${bbox});
+      );
+      out geom;`;
+
+    const url = `${this.overpassApiUrl}?data=${encodeURIComponent(query)}`;
+    const response = await axios.get(url);
+    return response.data;
+  }
 }

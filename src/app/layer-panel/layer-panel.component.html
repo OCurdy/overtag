@@ -1,25 +1,31 @@
 <div class="layer-panel">
   <h3>Layers</h3>
-  <ul cdkDropList (cdkDropListDropped)="onDrop($event)" class="drag-container">
-    <li *ngFor="let layer of layers; let i = index" cdkDrag class="layer-item">
-      <!-- Left Section: Icon with Color -->
+  <ul cdkDropList (cdkDropListDropped)="onDrop($event)">
+    <li *ngFor="let layer of layers; let i = index" class="layer-item" cdkDrag>
       <div class="layer-left">
         <span class="layer-icon" [style.background-color]="layer.color">
           <i [class]="getIconClass(layer)"></i>
         </span>
       </div>
-      <!-- Center Section: Title and Description -->
       <div class="layer-center">
         <span class="layer-title">{{ layer.title }}</span>
         <p class="layer-description">
-          {{ getTruncatedDescription(layer.description) }}..
-          <a *ngIf="layer.description" [href]="getWikiLink(layer.title)" target="_blank" class="description-link">for more ifno</a>
+          {{ getTruncatedDescription(layer.description) }}
+          <a *ngIf="layer.description" [href]="getWikiLink(layer.title)" target="_blank" class="description-link">
+            For more info
+          </a>
         </p>
+        <i class="bi bi-download download-icon" (click)="openDownloadPopup(layer)"></i>
       </div>
-      <!-- Right Section: Close Button -->
       <button class="delete-button" (click)="removeLayer(i)">
         <i class="bi bi-x"></i>
       </button>
     </li>
   </ul>
 </div>
+<app-download-popup
+  *ngIf="showDownloadPopup"
+  [layer]="selectedLayer"
+  (close)="closeDownloadPopup()"
+  (download)="downloadLayer($event)"
+></app-download-popup>

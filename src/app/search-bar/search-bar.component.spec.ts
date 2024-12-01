@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { TagfinderService } from '../tagfinder.service';
+import { TagfinderService } from '../services/tagfinder.service';
 
 describe('TagfinderService', () => {
   let service: TagfinderService;
