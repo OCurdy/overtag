@@ -93,30 +93,89 @@ export class MapComponent implements OnInit {
     if (!this.map) {
       return;
     }
-
+  
     const feature = this.map.forEachFeatureAtPixel(event.pixel, (feat) => feat);
-
+  
     if (feature) {
       const coordinates = event.coordinate;
-      const properties = feature.getProperties();
-
-      delete properties['geometry'];
-
-      let infoContent = '<ul>';
-      for (const key in properties) {
-        if (properties.hasOwnProperty(key)) {
-          infoContent += `<li><strong>${key}:</strong> ${properties[key]}</li>`;
-        }
+      const parentProperties = feature.getProperties();
+  
+      delete parentProperties['geometry'];
+      const realTags = parentProperties['properties'] || {};
+  
+      const relevantTags = [
+        'name',
+        'addr:housenumber',
+        'addr:street',
+        'addr:city',
+        'addr:postcode',
+        'addr:country',
+        'phone',
+        'email',
+        'website',
+        'opening_hours',
+        'amenity',
+        'shop',
+        'operator',
+        'species',
+        'height',
+        'description',
+        'brand',
+        'historic',
+        'building'
+      ];
+  
+      const featureName = realTags['name'] || '';
+  
+      let infoContent = '';
+  
+      if (featureName) {
+        infoContent += `<div style="font-weight: bold;">${featureName}</div>`;
       }
-      infoContent += '</ul>';
-
+  
+      let tableContent = `
+      <table style="border-collapse: collapse; width: 100%; margin-top: 0.5em;">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding-right: 0.5em;">Key</th>
+            <th style="text-align:left; padding-left: 0.5em;">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+      `;
+  
+      let rowCount = 0;
+  
+      relevantTags.forEach((tag) => {
+        if (tag !== 'name' && realTags[tag]) {
+          tableContent += `
+            <tr>
+              <td style="text-align:left; padding-right: 0.5em;"><strong>${tag}</strong></td>
+              <td style="text-align:left; padding-left: 0.5em;">${realTags[tag]}</td>
+            </tr>
+          `;
+          rowCount++;
+        }
+      });
+  
+      tableContent += `</tbody></table>`;
+  
+      // S'il n'y a ni name ni aucune autre info, on affiche "Aucune information disponible"
+      if (!featureName && rowCount === 0) {
+        infoContent = '<p>Aucune information disponible</p>';
+      }
+      // Sinon, on concatène le tableau s'il y a au moins 1 ligne
+      else if (rowCount > 0) {
+        infoContent += tableContent;
+      }
+  
       this.popupContent!.innerHTML = infoContent;
       this.overlay!.setPosition(coordinates);
     } else {
       this.overlay!.setPosition(undefined);
       this.popupCloser?.blur();
     }
-  }
+  }  
 
   addVectorLayer(overpassData: any, layerTitle: string, color: string): void {
     const uniqueId = this.mapService.generateUniqueLayerId();
@@ -142,6 +201,8 @@ export class MapComponent implements OnInit {
     });
 
     overpassData.elements.forEach((element: any) => {
+      console.log('[DEBUG] element => ', element);
+      console.log('[DEBUG] element.tags => ', element.tags);
       let feature: Feature | null = null;
 
       if (element.type === 'node' && element.lat && element.lon && !usedNodeIds.has(element.id)) {

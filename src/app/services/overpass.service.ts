@@ -11,14 +11,14 @@ export class OverpassService {
     const [key, value] = tag.split('=');
     
     const query = `[out:json][timeout:25];
-      (
-        node["${key}"="${value}"](${bbox});
-        way["${key}"="${value}"](${bbox});
-        relation["${key}"="${value}"](${bbox});
-      );
-      out geom;
-      >;
-      out skel qt;`;
+    (
+      node["${key}"="${value}"](${bbox});
+      way["${key}"="${value}"](${bbox});
+      relation["${key}"="${value}"](${bbox});
+    );
+    out body geom;
+    >;
+    out skel qt;`;  
     const url = `${this.overpassApiUrl}?data=${encodeURIComponent(query)}`;
 
     const response = await axios.get(url);
