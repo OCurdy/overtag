@@ -6,14 +6,15 @@ import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { DownloadPopupComponent } from '../download-popup/download-popup.component';
-import { LayerInfo } from '../models/layer-info.model'; // Import LayerInfo
+import { LayerInfo } from '../models/layer-info.model';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-layer-panel',
   templateUrl: './layer-panel.component.html',
   styleUrls: ['./layer-panel.component.css'],
   standalone: true,
-  imports: [CommonModule, DragDropModule, DownloadPopupComponent],
+  imports: [CommonModule, DragDropModule, DownloadPopupComponent, TranslateModule],
 })
 export class LayerPanelComponent implements OnInit {
   layers: LayerInfo[] = [];
@@ -24,6 +25,7 @@ export class LayerPanelComponent implements OnInit {
     private mapService: MapService,
     private bootstrapIconService: BootstrapIconService,
     private tagInfoService: TagInfoService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -62,10 +64,13 @@ export class LayerPanelComponent implements OnInit {
 
   getWikiLink(title: string): string {
     const [key, value] = title.split('=');
+    const userLang = this.translate.currentLang || 'en';
+    const baseUrl = `https://wiki.openstreetmap.org/wiki`;
+  
     return value
-      ? `https://wiki.openstreetmap.org/wiki/Tag:${key}%3D${value}`
-      : `https://wiki.openstreetmap.org/wiki/Key:${key}`;
-  }
+      ? `${baseUrl}/Tag:${key}%3D${value}?uselang=${userLang}`
+      : `${baseUrl}/Key:${key}?uselang=${userLang}`;
+  }  
 
   openDownloadPopup(layer: LayerInfo): void {
     console.log('openDownloadPopup called with layer:', layer);

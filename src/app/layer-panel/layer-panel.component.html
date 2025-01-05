@@ -12,7 +12,7 @@
         <p class="layer-description">
           {{ getTruncatedDescription(layer.description) }}
           <a *ngIf="layer.description" [href]="getWikiLink(layer.title)" target="_blank" class="description-link">
-            For more info
+            {{ 'for_more_info' | translate }}
           </a>
         </p>
         <i class="bi bi-download download-icon" (click)="openDownloadPopup(layer)"></i>

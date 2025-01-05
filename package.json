@@ -21,6 +21,8 @@
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
     "@elastic/elasticsearch": "^8.15.1",
+    "@ngx-translate/core": "^16.0.4",
+    "@ngx-translate/http-loader": "^16.0.1",
     "@xmldom/xmldom": "^0.9.5",
     "axios": "^1.7.7",
     "bootstrap": "^5.3.3",

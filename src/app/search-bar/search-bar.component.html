@@ -1,18 +1,32 @@
-<div class="search-bar-container">
-  <input 
-    type="text" 
-    [(ngModel)]="searchQuery" 
-    (input)="onInputChange()" 
-    placeholder="Rechercher un tag" 
-    class="search-input" 
-  />
-  <button class="search-button" (click)="onSearch()">
-    <i class="fas fa-paper-plane"></i>
-  </button>
-  
-  <ul *ngIf="isDropdownVisible && suggestions.length" class="suggestions-list">
-    <li *ngFor="let suggestion of suggestions" (click)="onSuggestionSelect(suggestion)">
-      {{ suggestion }}
-    </li>
-  </ul>
+<div class="search-and-langs-container">
+
+  <div class="search-bar-container">
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      (input)="onInputChange()"
+      [placeholder]="'search_tag' | translate"
+      class="search-input"
+    />
+    <button class="search-button" (click)="onSearch()">
+      <i class="fas fa-search"></i>
+    </button>
+    
+    <ul *ngIf="isDropdownVisible && suggestions.length" class="suggestions-list">
+      <li *ngFor="let suggestion of suggestions" (click)="onSuggestionSelect(suggestion)">
+        {{ suggestion }}
+      </li>
+    </ul>
+  </div>
+
+  <div class="language-switcher">
+    {{ 'available_in' | translate }}
+    <span *ngFor="let lang of otherLangs; let i = index">
+      <a href="#" (click)="switchLang(lang)">
+        {{ getLanguageLabel(lang) }}
+      </a>
+      <span *ngIf="i < otherLangs.length - 1"> | </span>
+    </span>
+  </div>
+
 </div>

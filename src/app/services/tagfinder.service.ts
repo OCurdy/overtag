@@ -1,7 +1,7 @@
-// tagfinder.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 interface ApiResponse {
   prefLabel: string;
@@ -16,10 +16,11 @@ interface ApiResponse {
 export class TagfinderService {
   private apiUrl = 'https://tagfinder.osm.ch/api/search';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private translate: TranslateService) {}
 
   suggestTag(query: string): Observable<string[]> {
-    const url = `${this.apiUrl}?query=${query}&lang=en&sortname=count_all&sortorder=desc&page=1&rp=10`;
+    const lang = this.translate.currentLang || 'en';
+    const url = `${this.apiUrl}?query=${query}&lang=${lang}&sortname=count_all&sortorder=desc&page=1&rp=10`;
     return this.http.get<ApiResponse[]>(url).pipe(
       map((response) => {
         // Récupérer les 5 premiers "prefLabel"

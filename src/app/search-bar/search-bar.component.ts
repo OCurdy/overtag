@@ -6,23 +6,26 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-search-bar',
   templateUrl: './search-bar.component.html',
   styleUrls: ['./search-bar.component.css'],
   standalone: true,
-  imports: [FormsModule, CommonModule]
+  imports: [FormsModule, CommonModule, TranslateModule]
 })
 export class SearchBarComponent {
   searchQuery = '';
   suggestions: string[] = [];
   isDropdownVisible = false;
+  supportedLangs = ['en', 'fr', 'de', 'it'];
 
   constructor(
     private tagfinderService: TagfinderService,
     private overpassService: OverpassService,
-    private mapService: MapService
+    private mapService: MapService,
+    private translate: TranslateService
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -85,5 +88,21 @@ export class SearchBarComponent {
       return "46.8,5.9,47.8,10.5";
     }
     return `${bottomLeft[1]},${bottomLeft[0]},${topRight[1]},${topRight[0]}`;
+  }
+
+  get currentLang(): string {
+    return this.translate.currentLang || this.translate.getDefaultLang();
+  }
+
+  get otherLangs(): string[] {
+    return this.supportedLangs.filter(lang => lang !== this.currentLang);
+  }
+
+  switchLang(lang: string): void {
+    this.translate.use(lang);
+  }
+
+  getLanguageLabel(lang: string): string {
+    return this.translate.instant(`lang_${lang}`);
   }
 }

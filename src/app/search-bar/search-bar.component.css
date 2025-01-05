@@ -66,3 +66,17 @@
 .suggestions-list li:hover {
   background-color: #eee;
 }
+
+.language-switcher {
+  margin-top: 8px;
+  font-size: 12px;
+  display: inline-block;  
+  padding: 1px 12px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  text-align: left;
+}
+
+.language-switcher a:hover {
+  text-decoration: underline;
+}
